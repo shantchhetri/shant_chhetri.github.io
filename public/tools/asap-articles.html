@@ -1,0 +1,857 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<link rel="preconnect" href="https://api.crossref.org" crossorigin>
+<title>ASAP Articles — Shant Chhetri</title>
+<style>
+:root{--bg:#ffffff;--card:#fff;--ink:#17232d;--body:#3a4752;--mute:#667582;--line:#dce5e8;--acc:#087f8c;--acc-dark:#06616b;--acc-soft:#e4f4f4;--chip:#eef1f3;--shadow:0 10px 30px rgba(27,61,72,.07);color-scheme:light}
+*{box-sizing:border-box}
+html{height:100%}
+body{margin:0;background:var(--bg);color:var(--ink);font:15px/1.6 system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;padding:env(safe-area-inset-top,0) 0 env(safe-area-inset-bottom,0)}
+main{max-width:1100px;margin:0 auto;padding:40px 24px 72px}
+header{display:flex;align-items:center;gap:12px;flex-wrap:wrap;margin-bottom:18px}
+h1{font:700 36px/1.05 Georgia,"Times New Roman",serif;margin:0;flex:1 1 220px;letter-spacing:-.025em}
+h1::after{content:"";display:block;width:42px;height:4px;background:var(--acc);border-radius:4px;margin-top:11px}
+button,select{font:inherit;cursor:pointer;border:1px solid var(--line);background:var(--card);color:var(--ink);padding:9px 14px;border-radius:12px;transition:border-color .15s,background .15s,box-shadow .15s}
+button:hover,select:hover{border-color:var(--acc)}
+button:active{transform:translateY(1px)}
+button.primary{background:var(--acc);color:#fff;border-color:var(--acc)}
+button.primary:hover{background:var(--acc-dark)}
+button:disabled{opacity:.4;cursor:default}
+button:focus-visible,input:focus-visible,a:focus-visible,select:focus-visible{outline:3px solid color-mix(in srgb,var(--acc) 35%,transparent);outline-offset:2px}
+#refresh{background:var(--acc);color:#fff;border-color:var(--acc);font-weight:600}
+#refresh:hover{background:var(--acc-dark)}
+#jbtn{font-weight:600}
+select{padding:8px 30px 8px 12px}
+.bar{display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap;margin-bottom:12px}
+.tabs{display:inline-flex;background:var(--chip);border-radius:14px;padding:4px;gap:4px}
+.tabs button{border:0;background:transparent;font-weight:600;color:var(--mute);padding:8px 16px;border-radius:10px}
+.tabs button.on{background:var(--card);color:var(--ink);box-shadow:0 1px 3px rgba(0,0,0,.12)}
+.tabs .n{display:inline-block;min-width:20px;padding:0 6px;margin-left:4px;border-radius:10px;background:var(--acc-soft);color:var(--acc-dark);font-size:12px;line-height:20px;text-align:center}
+.opts{display:flex;align-items:center;gap:16px;flex-wrap:wrap}
+.opts label{display:flex;align-items:center;gap:8px}
+.opts input{accent-color:var(--acc)}
+.meta{color:var(--mute);font-size:14px}
+#status{color:var(--mute);font-size:14px;margin:0 0 14px}
+#feed{display:grid;gap:18px}
+
+/* ---- article card ---- */
+.card{display:grid;grid-template-columns:minmax(220px,34%) minmax(0,1fr);background:var(--card);border:1px solid var(--line);border-radius:22px;box-shadow:var(--shadow);transition:opacity .2s,border-color .15s}
+.card:hover{border-color:color-mix(in srgb,var(--acc) 40%,var(--line))}
+.card.read{opacity:.62}
+.card.noimg{grid-template-columns:minmax(0,1fr)}
+.thumb{display:flex;align-items:center;justify-content:center;padding:22px;border-right:1px solid var(--line)}
+.thumb img{display:block;max-width:100%;max-height:300px;object-fit:contain;border-radius:6px;background:#fff}
+.body{padding:22px 26px 20px;min-width:0;display:flex;flex-direction:column}
+.top{display:flex;align-items:center;gap:10px;flex-wrap:wrap;margin-bottom:12px}
+.pill{background:var(--acc);color:#fff;font-weight:700;font-size:15px;line-height:1;padding:11px 18px;border-radius:12px;letter-spacing:.01em}
+.tag{background:var(--chip);color:var(--mute);font-weight:700;font-size:15px;line-height:1;padding:11px 16px;border-radius:12px}
+.top .dot,.top .ago{color:var(--mute);font-size:15px}
+.card h2{font:700 25px/1.28 Charter,"Iowan Old Style","Source Serif 4",Georgia,"Times New Roman",serif;margin:0 0 10px;letter-spacing:-.005em}
+.card h2 a{color:var(--ink);text-decoration:none}
+.card h2 a:hover{color:var(--acc)}
+.authors{color:var(--mute);font-size:16px;line-height:1.6;margin:0 0 12px}
+.abs{margin:0 0 16px;color:var(--body);font-size:16px;line-height:1.65;display:-webkit-box;-webkit-line-clamp:4;-webkit-box-orient:vertical;overflow:hidden}
+.abs.none{display:block;font-size:14px;font-style:italic;color:var(--mute)}
+.card.open .abs{-webkit-line-clamp:unset;display:block}
+.actions{display:flex;align-items:center;gap:10px;flex-wrap:wrap;margin-top:auto}
+.btn{position:relative;display:inline-flex;align-items:center;gap:8px;font:600 16px/1 system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;padding:13px 18px;border-radius:14px;border:1px solid var(--line);background:var(--card);color:var(--ink);text-decoration:none;cursor:pointer}
+.btn:hover{border-color:var(--acc)}
+.btn svg{width:18px;height:18px;flex:none}
+.btn.full{background:var(--acc-soft);color:var(--acc-dark);border-color:color-mix(in srgb,var(--acc) 30%,var(--line))}
+.btn.on{border-color:var(--acc);color:var(--acc-dark);background:var(--acc-soft)}
+.btn.on svg.fill{fill:currentColor}
+.btn[data-tip]:hover::after{content:attr(data-tip);position:absolute;left:50%;top:calc(100% + 8px);transform:translateX(-50%);background:#3a4046;color:#fff;font:500 13px/1 system-ui,sans-serif;padding:8px 11px;border-radius:6px;white-space:nowrap;z-index:5;pointer-events:none}
+.doi{margin-left:auto;font:14px/1.3 ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;color:var(--mute);text-decoration:none;word-break:break-all;text-align:right}
+.doi:hover{color:var(--acc)}
+nav{display:flex;justify-content:space-between;align-items:center;margin-top:25px;padding-top:20px;border-top:1px solid var(--line)}
+nav #pg{font-weight:600}
+
+dialog{border:1px solid var(--line);border-radius:18px;background:var(--card);color:var(--ink);max-width:480px;width:calc(100% - 32px);padding:26px;box-shadow:0 24px 70px rgba(0,0,0,.2)}
+dialog::backdrop{background:rgba(11,28,34,.55)}
+/* embedded in the website: the site shows its own page title */
+.embed h1{display:none}
+.embed main{padding-top:4px}
+.embed header{justify-content:flex-end}
+dialog h3{margin:0 0 4px;font:600 23px Georgia,serif}
+dialog p{margin:0 0 16px;color:var(--mute);font-size:14px}
+.list{max-height:50vh;overflow:auto;margin:12px 0 18px;padding:4px 12px;border:1px solid var(--line);border-radius:10px}
+.list label{display:flex;gap:10px;padding:8px 0;align-items:center;border-bottom:1px solid var(--line)}
+.list label:last-child{border-bottom:0}
+.list input{accent-color:var(--acc)}
+.journal-name{flex:1}
+.impact{display:flex;flex-direction:column;align-items:flex-end;gap:2px;color:var(--mute);font-size:11px;line-height:1.25;text-align:right;white-space:nowrap}
+.row{display:flex;gap:8px;flex-wrap:wrap}
+.row.end{justify-content:flex-end;margin-top:8px}
+.err{color:#b3261e}
+@media (max-width:760px){
+  main{padding:26px 14px 52px}
+  h1{font-size:30px}
+  .card{grid-template-columns:minmax(0,1fr)}
+  .thumb{border-right:0;border-bottom:1px solid var(--line);padding:16px}
+  .body{padding:18px 18px 16px}
+  .card h2{font-size:21px}
+  .doi{margin-left:0;width:100%;text-align:left}
+  .btn{padding:11px 14px;font-size:15px}
+}
+</style>
+</head>
+<body>
+<main>
+  <header>
+    <h1>ASAP Article</h1>
+    <button id="refresh">Refresh</button>
+    <button id="jbtn">Journals <span id="jcount"></span></button>
+  </header>
+  <div class="bar">
+    <div class="tabs" role="group" aria-label="View">
+      <button id="tabFeed" class="on" aria-pressed="true">Feed</button>
+      <button id="tabSaved" aria-pressed="false">Saved <span class="n" id="scount">0</span></button>
+    </div>
+    <div class="opts" id="opts">
+      <label class="meta" for="sort">Sort:
+        <select id="sort" aria-label="Sort articles">
+          <option value="newest">Newest first</option>
+          <option value="relevance">Organic electronics relevance</option>
+          <option value="professors">Professor publications</option>
+        </select>
+      </label>
+      <label class="meta"><input type="checkbox" id="hideread"> Hide read</label>
+    </div>
+  </div>
+  <p id="status">Loading latest articles…</p>
+  <div id="feed"></div>
+  <nav><button id="prev">Previous</button><span id="pg" class="meta"></span><button id="next">Next</button></nav>
+</main>
+
+<dialog id="dlg">
+  <h3>Journals</h3>
+  <p>Choose what appears in your feed.</p>
+  <div class="row"><button id="all">Select all</button><button id="defs">Defaults</button><button id="none">Clear</button></div>
+  <div class="list" id="jlist"></div>
+  <div class="row end"><button id="cancel">Cancel</button><button id="save" class="primary">Save and refresh</button></div>
+</dialog>
+
+<script>
+// ---- Embedded in the website? (…/asap-articles.html?embed=1) ----
+const EMBED = new URLSearchParams(location.search).has("embed");
+if(EMBED){
+  document.documentElement.classList.add("embed");
+  const report = () => parent.postMessage({type: "asap-height", h: document.documentElement.scrollHeight}, location.origin);
+  new ResizeObserver(report).observe(document.body);
+  addEventListener("load", report);
+}
+let VP = {top: 0, h: innerHeight};          // visible part of this frame (sent by the website)
+addEventListener("message", e => {
+  if(e.origin === location.origin && e.data && e.data.type === "asap-viewport") VP = {top: +e.data.top || 0, h: +e.data.h || innerHeight};
+});
+
+// ---- Settings you can edit ----
+const CONTACT_EMAIL = ""; // optional: your email, sent to Crossref/OpenAlex to identify this client (leave empty to send none)
+const DAYS_BACK = 14;                    // how far back to look
+const PER_JOURNAL = 30;                  // articles fetched per journal
+const PER_PAGE = 15;
+const MAX_ABSTRACT = 900;                // chars kept per abstract (keeps cache small)
+
+// Add or remove journals here (name, ISSN, shown by default)
+const JOURNALS = [
+    ["Advanced Materials", "1521-4095", 1],
+    ["Nature Materials", "1476-4660", 0],
+    ["Nature Electronics", "2520-114X", 0],
+    ["Nature Nanotechnology", "1748-3395", 0],
+    ["Nature Photonics", "1749-4893", 0],
+    ["Science Advances", "2375-2548", 0],
+    ["Advanced Functional Materials", "1616-3028", 1],
+    ["ACS Nano", "1936-086X", 0],
+    ["Nano Letters", "1530-6992", 0],
+    ["Small", "1613-6829", 0],
+    ["Advanced Science", "2198-3844", 0],
+    ["Advanced Electronic Materials", "2199-160X", 1],
+    ["Advanced Optical Materials", "2195-1071", 0],
+    ["Chemistry of Materials", "1520-5002", 1],
+    ["J. Mater. Chem. C", "2050-7534", 1],
+    ["ACS Appl. Mater. Interfaces", "1944-8252", 1],
+    ["ACS Appl. Electron. Mater.", "2637-6113", 1],
+    ["Materials Horizons", "2051-6355", 1],
+    ["Nanoscale", "2040-3372", 0],
+    ["ACS Photonics", "2330-4022", 0],
+    ["J. Am. Chem. Soc.", "1520-5126", 0],
+    ["Angew. Chem. Int. Ed.", "1521-3773", 0],
+    ["Chemical Science", "2041-6539", 1],
+    ["J. Phys. Chem. Lett.", "1948-7193", 1],
+    ["J. Phys. Chem. C", "1932-7455", 1],
+    ["PCCP", "1463-9084", 0],
+    ["ACS Materials Letters", "2639-4979", 0],
+    ["Nature Chemistry", "1755-4349", 0],
+    ["Nature Communications", "2041-1723", 0],
+    ["Nature Catalysis", "2520-1158", 0],
+    ["PNAS", "1091-6490", 0],
+    ["Accounts of Materials Research", "2643-6728", 0],
+    ["Matter", "2590-2385", 0],
+    ["Chem", "2451-9294", 0],
+];
+
+const $ = id => document.getElementById(id);
+const SORT_KEY = "asap.sort";
+const IMPACT_FACTOR_YEAR = "Impact factor";
+const CITESCORE_YEAR = "2024 CiteScore";
+const IMPACT_FACTORS = {
+  "1521-4095": "29.1",
+  "1476-4660": "37.2",
+  "2520-114X": "42.3",
+  "1748-3395": "37.5",
+  "1749-4893": "38.1",
+  "2375-2548": "13.9",
+  "1616-3028": "19.9",
+  "1936-086X": "17.3",
+  "1530-6992": "9.1",
+  "1613-6829": "11.8",
+  "2198-3844": "14.1",
+  "2199-160X": "5.9",
+  "2195-1071": "7.2",
+  "1520-5002": "7.5",
+  "2050-7534": "5.1",
+  "1944-8252": "7.9",
+  "2637-6113": "4.7",
+  "2051-6355": "11.4",
+  "2040-3372": "5.2",
+  "2041-1723": "14.7",
+  "2330-4022": "6.0",
+  "1520-5126": "16.6",
+  "1521-3773": "17.6",
+  "2041-6539": "8.1",
+  "1948-7193": "4.5",
+  "1932-7455": "3.4",
+  "1463-9084": "3.0",
+  "2639-4979": "8.6",
+  "1755-4349": "24.5",
+  "2041-1723": "18.1",
+  "2520-1158": "48.3",
+  "1091-6490": "4.8",
+  "2643-6728": "14.1",
+  "2590-2385": "10.19",
+  "2451-9294": "19.1"
+};
+const CITESCORES = {
+  "1521-4095": "42.0",
+  "1476-4660": "56.9",
+  "2520-114X": "41.3",
+  "1748-3395": "62.4",
+  "1749-4893": "56.3",
+  "2375-2548": "19.0",
+  "1616-3028": "28.7",
+  "1936-086X": "23.1",
+  "1530-6992": "13.5",
+  "1613-6829": "16.8",
+  "2198-3844": "18.1",
+  "2199-160X": "9.9",
+  "1520-5002": "15.9",
+  "2050-7534": "8.7",
+  "2637-6113": "7.0",
+  "2051-6355": "15.3",
+  "2330-4022": "10.4",
+  "1520-5126": "22.0",
+  "1521-3773": "25.7",
+  "2639-4979": "13.3",
+  "2041-1723": "24.3",
+  "1091-6490": "6.7"
+};
+const QUARTILES = {
+  "1521-4095": "Q1",
+  "1476-4660": "Q1",
+  "2520-114X": "Q1",
+  "1748-3395": "Q1",
+  "1749-4893": "Q1",
+  "2375-2548": "Q1",
+  "1616-3028": "Q1",
+  "1936-086X": "Q1",
+  "1530-6992": "Q1",
+  "1613-6829": "Q1",
+  "2198-3844": "Q1",
+  "2199-160X": "Q1",
+  "2195-1071": "Q1",
+  "1520-5002": "Q1",
+  "2050-7534": "Q1",
+  "1944-8252": "Q1",
+  "2637-6113": "Q1",
+  "2051-6355": "Q1",
+  "2040-3372": "Q1",
+  "2330-4022": "Q1",
+  "1520-5126": "Q1",
+  "1521-3773": "Q1",
+  "2041-6539": "Q1",
+  "1948-7193": "Q1",
+  "1932-7455": "Q1",
+  "1463-9084": "Q2",
+  "2639-4979": "Q1",
+  "1755-4349": "Q1",
+  "2041-1723": "Q1",
+  "2520-1158": "Q1",
+  "1091-6490": "Q1"
+};
+const PROFESSORS = [
+  "Oana D. Jurchescu", "Iain McCulloch", "Wojciech Pisula", "Martin Heeney",
+  "Magnus Berggren", "Daniel T. Simon", "Marta Mas-Torrent", "George G. Malliaras",
+  "Toshihiro Okamoto", "Jun Takeya", "Ulrike Kraft", "Dion Khodagholy",
+  "Ludvig Edman", "Stefan C. B. Mannsfeld", "Christopher R. McNeill", "Sabine Ludwigs",
+  "René Janssen", "Sebastian Reineke", "Tomasz Marszałek", "María-José Bañuls Polo",
+  "Simone Fabiano", "Sébastien Sanaur", "Xenofon Strakosas", "Bernhard Wolfrum",
+  "Hans Kleemann", "Klas Tybrandt", "Takao Someya", "Karl Leo", "Hagen Klauk",
+  "Sahika Inal", "Alberto Salleo", "John R. Reynolds", "Harry L. Anderson",
+  "Yutaka Wakayama", "David Cahen", "Elvira Fortunato", "Antonio Facchetti",
+  "Henning Sirringhaus", "Sven Hüttner", "Eva M. Herzig", "Josh Hihath",
+  "Fabio Biscarini", "Veerabhadrarao Kaliginedi", "Saransh Sharma", "Ritu Raman",
+  "Ron Naaman", "Kasparas Rakstys", "Vytautas Getautis", "Holger Frauenrath",
+  "Kevin Sivula", "Pabitra K. Nayak", "Yana Vaynzof", "Antoine Goujon", "Gitti L. Frey",
+  "Natalie Banerji", "Guillermo C. Bazan", "Chunyan Chi", "Paolo Samorì",
+  "Peter K. H. Ho", "Yves H. Geerts", "Ying Diao", "Jonathan Rivnay", "Frank Würthner",
+  "Seth R. Marder", "Natalie Stingelin", "Thuc-Quyen Nguyen", "Christian Müller",
+  "Mario Caironi", "Paul W. M. Blom", "Kazuo Takimiya", "Christine K. Luscombe",
+  "Christian B. Nielsen", "Aristide Gumyusenge", "Xugang Guo", "Emanuele Orgiu",
+  "Jenny Nelson", "Aram Amassian", "Georges hadziioannou", "Jacky Even",
+  "Emil J.W. List-Kratochvil", "Wolfgang Tress", "Koen Vandewal", "Antonio Agresti",
+  "Renaud Demadrille", "Fabio Cicoira", "Konstantinos S. Daskalakis",
+  "Amparo Güemes Gonzalez", "Dimitrios A. Koutsouras", "John Labram", "Leszek Majewski",
+  "Alexandra F. Paterson", "Ingo Salzmann", "Dieter Neher", "Haining Tian",
+  "Annalisa Bruno", "Chu-Chen Chueh", "shuzi hayase", "Seigo Ito", "Hideo Ohkita",
+  "Saeki Akinori", "Vida Engmann", "Enrique D. Gomez", "Yoeri van de Burgt",
+  "Philip C.Y. Chow", "Derya Baran", "Nicola Gasparini", "Christoph J. Brabec",
+  "Jan Genoe", "Changduk Yang", "Bongsoo Kim", "Jin Young Kim", "Myung-Han Yoon",
+  "Dong-Yu Kim", "Bumjoon J. Kim", "Jung-Yong Lee", "Stefan Meskers", "Miro"
+];
+
+// ================= State =================
+let all = [], items = [], page = 0, selected = load();
+const NAME_OF = new Map(JOURNALS.map(j => [j[1], j[0]]));
+const nameOf = issn => NAME_OF.get(issn) || issn;
+let refreshRunning = false, queued = false, done = 0, total = 0, failed = [];
+
+try {
+  const savedSort = localStorage.getItem(SORT_KEY);
+  if(["newest", "relevance", "professors"].includes(savedSort)) $("sort").value = savedSort;
+} catch(e) {}
+
+function load(){
+  const valid = new Set(JOURNALS.map(j => j[1]));
+  try{
+    const s = JSON.parse(localStorage.getItem("asap.journals"));
+    if(Array.isArray(s) && s.length) return s.filter(issn => valid.has(issn));
+  }catch(e){}
+  return JOURNALS.filter(j => j[2]).map(j => j[1]);
+}
+function persist(){ try{ localStorage.setItem("asap.journals", JSON.stringify(selected)); }catch(e){} }
+
+// ================= Text helpers =================
+const plain = h => {
+  if(!h) return "";
+  if(!/[<&]/.test(h)) return h.replace(/\s+/g, " ").trim();          // fast path: no markup, no DOMParser
+  const d = new DOMParser().parseFromString(h, "text/html");
+  return (d.body.textContent || "").replace(/\s+/g, " ").trim();
+};
+const dateFmt = new Intl.DateTimeFormat(undefined, {day:"numeric", month:"short", year:"numeric"});
+
+// ================= Scoring (computed once per item, then memoised) =================
+const RELEVANCE_TERMS = [
+  [/\borganic electronics?\b/gi, 12],
+  [/\borganic semiconductors?\b/gi, 12],
+  [/\bself[- ]assembly\b/gi, 10],
+  [/\bmolecular self[- ]assembly\b/gi, 12],
+  [/\bsemiconductors?\b/gi, 7],
+  [/\bself[- ]assembled\b/gi, 8],
+  [/\bOFETs?\b/gi, 8],
+  [/\bOLEDs?\b/gi, 7],
+  [/\bOECTs?\b/gi, 10],
+  [/\borganic electrochemical transistors?\b/gi, 11],
+  [/\bEGOFETs?\b/gi, 9],
+  [/\bthin[- ]film transistors?\b/gi, 7],
+  [/\bmolecular electronics?\b/gi, 7],
+  [/\bconjugated polymers?\b/gi, 6],
+  [/\bπ[- ]conjugated\b/gi, 6],
+  [/\bpi[- ]conjugated\b/gi, 6],
+  [/\bmixed ionic[- ]electronic conductors?\b/gi, 8],
+  [/\borganic mixed conductors?\b/gi, 8],
+  [/\bion[- ]electron coupling\b/gi, 6],
+  [/\borganic photovoltaics?\b/gi, 7],
+  [/\bOPVs?\b/gi, 6],
+  [/\borganic photodetectors?\b/gi, 7],
+  [/\borganic thermoelectrics?\b/gi, 6],
+  [/\borganic bioelectronics?\b/gi, 7],
+  [/\bneuromorphic\b/gi, 4],
+  [/\bsupramolecular\b/gi, 5],
+  [/\bmolecular packing\b/gi, 5],
+  [/\bcrystallinity\b/gi, 4],
+  [/\bsolution[- ]processed\b/gi, 4],
+  [/\binkjet[- ]printed\b/gi, 4],
+  [/\bself[- ]assembled monolayers?\b/gi, 8],
+  [/\bcharge transport\b/gi, 5],
+  [/\bflexible electronics?\b/gi, 5]
+];
+function relevanceScore(item){
+  const title = item.title || "";
+  const text = `${title} ${item.abs || ""}`;
+  let score = 0;
+  for(const [pattern, weight] of RELEVANCE_TERMS){
+    const t = title.match(pattern)?.length || 0;
+    const a = text.match(pattern)?.length || 0;
+    score += t * weight * 3 + (a - t) * weight;
+  }
+  return score;
+}
+const rel = it => it._r ?? (it._r = relevanceScore(it));
+
+function normalizeName(name){
+  return String(name || "").normalize("NFD").replace(/[\u0300-\u036f]/g, "")
+    .toLowerCase().replace(/[^a-z0-9]+/g, " ").trim();
+}
+const PROF = new Map(); // last name -> [first names]
+for(const n of PROFESSORS){
+  const p = normalizeName(n).split(" "), last = p[p.length - 1];
+  if(!PROF.has(last)) PROF.set(last, []);
+  PROF.get(last).push(p[0]);
+}
+const isProf = it => it._p ?? (it._p = (it.authors || []).some(a => {
+  const p = normalizeName(a).split(" ");
+  if(p.length < 2) return false;
+  const firsts = PROF.get(p[p.length - 1]);
+  return !!firsts && firsts.some(f => f === p[0] || f[0] === p[0][0]);
+}));
+
+// all = every cached article for selected journals; items = filtered + sorted view of it
+function applyView(){
+  if(view === "saved"){ items = saved.slice(); return; }
+  const mode = $("sort").value;
+  let list = all;
+  if(hideRead) list = list.filter(i => !readKeys.has(keyOf(i)));
+  if(mode === "relevance") list = list.filter(i => rel(i) > 0);
+  else if(mode === "professors") list = list.filter(isProf);
+  items = list.slice().sort(mode === "relevance"
+    ? (a, b) => (rel(b) - rel(a)) || (b.date - a.date)
+    : (a, b) => b.date - a.date);
+}
+
+// ================= Cache: one localStorage key per journal =================
+const CACHE_PREFIX = "asap.v5.";
+const CACHE_TTL = 15 * 60 * 1000;   // 15 minutes
+const mem = new Map();              // issn -> {t, items}
+try { localStorage.removeItem("asap.crossref.cache.v3"); JOURNALS.forEach(j => localStorage.removeItem("asap.v4." + j[1])); } catch(e) {}  // old caches; frees quota
+
+function readCache(issn){
+  if(mem.has(issn)) return mem.get(issn);
+  try{
+    const e = JSON.parse(localStorage.getItem(CACHE_PREFIX + issn));
+    if(e && e.t && Array.isArray(e.items)){ mem.set(issn, e); return e; }
+  }catch(err){}
+  return null;
+}
+function writeCache(issn, entry){
+  mem.set(issn, entry);
+  try{ localStorage.setItem(CACHE_PREFIX + issn, JSON.stringify(entry)); }catch(e){}
+}
+
+// ================= Network =================
+const MAX_CONCURRENT = 3;       // Crossref's polite pool allows about 3 parallel requests
+const MAX_ATTEMPTS = 3;
+const FETCH_TIMEOUT = 15000;
+const sleep = ms => new Promise(r => setTimeout(r, ms));
+let pauseUntil = 0;             // shared pause after a 429 so all workers back off together
+
+class HttpError extends Error {
+  constructor(status, retryAfter){ super("HTTP " + status); this.status = status; this.retryAfter = retryAfter || 0; }
+}
+
+async function fetchJournal(issn){
+  const since = new Date(Date.now() - DAYS_BACK * 864e5).toISOString().slice(0, 10);
+  const params = new URLSearchParams({
+    filter: `from-created-date:${since},type:journal-article`,
+    sort: "created", order: "desc", rows: String(PER_JOURNAL),
+    select: "DOI,title,author,created,URL,abstract,link"
+  });
+  if(CONTACT_EMAIL) params.set("mailto", CONTACT_EMAIL);
+  const ctl = new AbortController();
+  const timer = setTimeout(() => ctl.abort(), FETCH_TIMEOUT);
+  let j;
+  try{
+    const r = await fetch(`https://api.crossref.org/journals/${issn}/works?${params}`, {signal: ctl.signal});
+    if(!r.ok){
+      const ra = parseFloat(r.headers.get("retry-after"));
+      throw new HttpError(r.status, isNaN(ra) ? 0 : ra * 1000);
+    }
+    j = await r.json();
+  } finally { clearTimeout(timer); }
+
+  const journal = nameOf(issn);
+  return j.message.items.filter(x => x.title && x.title[0]).map(x => {
+    const diagram = (x.link || []).find(l =>
+      /^image\//i.test(l["content-type"] || "") || /\.(png|jpe?g|gif|webp|svg)(?:[?#]|$)/i.test(l.URL || ""));
+    return {
+      issn, journal,
+      title: plain(x.title[0]),
+      authors: (x.author || []).map(a => [a.given, a.family].filter(Boolean).join(" ")),
+      date: Date.parse(x.created["date-time"]),
+      url: x.URL,
+      doi: x.DOI || "",
+      abs: plain(x.abstract).replace(/^Abstract\s*/i, "").slice(0, MAX_ABSTRACT),
+      diagram: diagram ? diagram.URL : ""
+    };
+  });
+}
+
+async function fetchWithRetry(issn){
+  for(let attempt = 0;; attempt++){
+    const wait = pauseUntil - Date.now();
+    if(wait > 0) await sleep(wait);
+    try{ return await fetchJournal(issn); }
+    catch(err){
+      const s = err.status || 0;                       // 0 = network error or timeout
+      const retryable = !s || s === 429 || s >= 500;   // never retry 4xx such as 404
+      const max = s ? MAX_ATTEMPTS : 2;                // fail fast when the network itself is unreachable
+      if(!retryable || attempt + 1 >= max) throw err;
+      const delay = Math.max(err.retryAfter || 0, Math.min(8000, 1000 * 2 ** attempt)) + Math.random() * 300;
+      if(s === 429) pauseUntil = Math.max(pauseUntil, Date.now() + delay);
+      else await sleep(delay);
+    }
+  }
+}
+
+async function runWithConcurrency(list, limit, worker){
+  let next = 0;
+  await Promise.all(Array.from({length: Math.min(limit, list.length)}, async () => {
+    while(next < list.length) await worker(list[next++]);
+  }));
+}
+
+// ================= Refresh =================
+let rebuildTimer = 0;
+function scheduleRebuild(){ clearTimeout(rebuildTimer); rebuildTimer = setTimeout(() => rebuild(false), 200); }
+
+function rebuild(resetPage){
+  all = selected.flatMap(i => (readCache(i) || {items: []}).items);
+  if(view !== "feed") return;          // never repaint the Saved list under the reader
+  applyView();
+  page = resetPage ? 0 : Math.min(page, Math.max(0, Math.ceil(items.length / PER_PAGE) - 1));
+  render();
+}
+
+async function refresh(force){
+  if(refreshRunning){ queued = true; return; }
+  $("jcount").textContent = "(" + selected.length + ")";
+  failed = [];
+
+  const now = Date.now();
+  const stale = selected.filter(i => { const e = readCache(i); return force === true || !e || now - e.t >= CACHE_TTL; });
+  stale.sort((a, b) => ((readCache(a) || {}).t || 0) - ((readCache(b) || {}).t || 0)); // empty journals first, then oldest
+  if(stale.length){ refreshRunning = true; done = 0; total = stale.length; $("refresh").disabled = true; }
+
+  rebuild(true);                       // paint cached articles immediately
+  if(!stale.length) return;
+
+  try{
+    await runWithConcurrency(stale, MAX_CONCURRENT, async issn => {
+      try{
+        writeCache(issn, {t: Date.now(), items: await fetchWithRetry(issn)});
+        scheduleRebuild();             // articles appear as each journal lands
+      }catch(err){
+        failed.push(nameOf(issn) + (err.status ? " (HTTP " + err.status + ")" : ""));
+      }finally{
+        done++; updateStatus();
+      }
+    });
+  } finally {
+    refreshRunning = false;
+    $("refresh").disabled = false;
+    clearTimeout(rebuildTimer);
+    rebuild(false);
+    if(queued){ queued = false; refresh(); }
+  }
+}
+
+// ================= Saved / read / presentation helpers =================
+const SHORT = {"1521-4095":"Adv. Mater.","1476-4660":"Nat. Mater.","2520-114X":"Nat. Electron.","1748-3395":"Nat. Nanotechnol.","1749-4893":"Nat. Photonics","2375-2548":"Sci. Adv.","1616-3028":"Adv. Funct. Mater.","1936-086X":"ACS Nano","1530-6992":"Nano Lett.","1613-6829":"Small","2198-3844":"Adv. Sci.","2199-160X":"Adv. Electron. Mater.","2195-1071":"Adv. Opt. Mater.","1520-5002":"Chem. Mater.","2050-7534":"J. Mater. Chem. C","1944-8252":"ACS AMI","2637-6113":"ACS AEM","2051-6355":"Mater. Horiz.","2040-3372":"Nanoscale","2330-4022":"ACS Photonics","1520-5126":"JACS","1521-3773":"Angew. Chem.","2041-6539":"Chem. Sci.","1948-7193":"JPCL","1932-7455":"JPCC","1463-9084":"PCCP","2639-4979":"ACS Mater. Lett.","1755-4349":"Nat. Chem.","2041-1723":"Nat. Commun.","2520-1158":"Nat. Catal.","1091-6490":"PNAS","2643-6728":"Acc. Mater. Res.","2590-2385":"Matter","2451-9294":"Chem"};
+const PUB_COLORS = {"10.1021":"#274b8f","10.1002":"#6b3f9a","10.1038":"#b3261e","10.1039":"#0b6b8a","10.1126":"#9b2335","10.1073":"#1c5d8f"};
+const pubColor = doi => PUB_COLORS[(doi || "").split("/")[0]] || "";
+const isAcs = doi => /^10\.1021\//i.test(doi || "");
+
+// Preview image candidates, tried in order until one loads. All guesses are derived from the DOI.
+const ACS_CODES = {jacs:"ja", acsnano:"nn", nanolett:"nl", acsami:"am", chemmater:"cm", macromol:"ma", jpclett:"jz", jpcc:"jp", jctc:"ct", acsphotonics:"ph", acsaelm:"ae"};
+function previewCandidates(it){
+  const out = [];
+  if(it.diagram) out.push(it.diagram);
+  const doi = it.doi || "";
+  const acs = /^10\.1021\/(?:acs\.)?([a-z]+)\.([0-9a-z]+)$/i.exec(doi);
+  const code = acs && ACS_CODES[acs[1].toLowerCase()];
+  if(code){
+    const base = `https://pubs.acs.org/cms/${doi}/asset/images`, id = code + acs[2];
+    out.push(`${base}/medium/${id}_0001.gif`, `${base}/large/${id}_0001.jpeg`, `${base}/large/${id}_0001.gif`);
+  }
+  const rsc = /^10\.1039\/([a-z0-9]+)$/i.exec(doi);
+  if(rsc) out.push(`https://pubs.rsc.org/en/Content/Image/GA/${rsc[1].toUpperCase()}`);
+  return [...new Set(out)];
+}
+
+// Abstract fallback: Crossref often has none, so ask OpenAlex (one batched request per page, only for cards missing text).
+const ABS_KEY = "asap.absmap.v1", ABS_NEG_TTL = 24 * 36e5;
+let absMap = lsGet(ABS_KEY, {});            // doi -> [fetchedAt, text]  (text "" = looked up, nothing found)
+if(!absMap || typeof absMap !== "object" || Array.isArray(absMap)) absMap = {};
+const absInflight = new Set();
+const doiKey = it => (it.doi || "").toLowerCase();
+function applyKnownAbs(it){ const e = absMap[doiKey(it)]; if(e && e[1] && !it.abs) it.abs = e[1]; }
+function rebuildAbs(idx){
+  const words = [];
+  for(const [w, pos] of Object.entries(idx)) for(const p of pos) words[p] = w;
+  return plain(words.filter(Boolean).join(" ")).replace(/^Abstract\s*/i, "").slice(0, MAX_ABSTRACT);
+}
+async function enrichAbstracts(list){
+  const need = list.filter(it => {
+    const k = doiKey(it);
+    if(it.abs || !k || /[,|]/.test(k) || absInflight.has(k)) return false;
+    const e = absMap[k];
+    return !(e && (e[1] || Date.now() - e[0] < ABS_NEG_TTL));
+  });
+  if(!need.length) return;
+  need.forEach(it => absInflight.add(doiKey(it)));
+  const ctl = new AbortController(), timer = setTimeout(() => ctl.abort(), 12000);
+  try{
+    const params = new URLSearchParams({
+      filter: "doi:" + need.map(it => "https://doi.org/" + it.doi).join("|"),
+      select: "doi,abstract_inverted_index", "per-page": String(need.length)
+    });
+    if(CONTACT_EMAIL) params.set("mailto", CONTACT_EMAIL);
+    const r = await fetch("https://api.openalex.org/works?" + params, {signal: ctl.signal});
+    if(!r.ok) throw new HttpError(r.status);
+    const j = await r.json(), found = new Map();
+    for(const w of j.results || []){
+      const d = String(w.doi || "").replace(/^https?:\/\/doi\.org\//i, "").toLowerCase();
+      if(d && w.abstract_inverted_index) found.set(d, rebuildAbs(w.abstract_inverted_index));
+    }
+    const now = Date.now(), touchedIssn = new Set();
+    for(const it of need){
+      const k = doiKey(it), text = found.get(k) || "";
+      absMap[k] = [now, text];
+      if(text){ it.abs = text; touchedIssn.add(it.issn); for(const sv of saved) if(doiKey(sv) === k) sv.abs = text; }
+    }
+    const keys = Object.keys(absMap);
+    if(keys.length > 2500) keys.sort((a, b) => absMap[a][0] - absMap[b][0]).slice(0, keys.length - 2000).forEach(k => delete absMap[k]);
+    lsSet(ABS_KEY, absMap);
+    for(const i of touchedIssn){ const e = mem.get(i); if(e) writeCache(i, e); }
+    lsSet("asap.saved.v1", saved);
+    for(const it of need){                                    // swap in the updated card in place
+      const old = cardByKey.get(keyOf(it));
+      if(old && old.isConnected){ const nc = buildCard(it, false); old.replaceWith(nc); cardByKey.set(keyOf(it), nc); }
+    }
+  }catch(e){ /* leave cards as they are; a later page view retries */ }
+  finally{ clearTimeout(timer); need.forEach(it => absInflight.delete(doiKey(it))); }
+}
+let imgOk = 0, imgTry = 0, renderToken = 0;
+const failedPreview = new Set(), cardByKey = new Map();
+
+function ago(ms){
+  const d = Date.now() - ms;
+  if(d < 0 || isNaN(d)) return dateFmt.format(ms);
+  const m = Math.round(d / 6e4);
+  if(m < 1) return "just now";
+  if(m < 60) return m + " min ago";
+  const h = Math.round(m / 60);
+  if(h < 24) return h + " h ago";
+  const days = Math.round(h / 24);
+  return days < 7 ? days + " d ago" : dateFmt.format(ms);
+}
+function authorList(list){
+  const a = list.length > 14 ? list.slice(0, 14) : list;
+  const tail = list.length > 14 ? " et al." : "";
+  if(a.length < 3) return a.join(" and ") + tail;
+  return a.slice(0, -1).join(", ") + (tail ? ", " + a[a.length - 1] + tail : ", and " + a[a.length - 1]);
+}
+
+function lsGet(k, d){ try{ const v = JSON.parse(localStorage.getItem(k)); return v ?? d; }catch(e){ return d; } }
+function lsSet(k, v){ try{ localStorage.setItem(k, JSON.stringify(v)); return true; }catch(e){ return false; } }
+const keyOf = it => String(it.doi || it.url || it.title).toLowerCase();
+const snap = it => ({issn: it.issn, journal: it.journal, title: it.title, authors: it.authors, date: it.date, url: it.url, doi: it.doi, abs: it.abs, diagram: it.diagram});
+
+let view = "feed";
+let saved = lsGet("asap.saved.v1", []); if(!Array.isArray(saved)) saved = [];
+let savedKeys = new Set(saved.map(keyOf));
+let readKeys = new Set(lsGet("asap.read.v1", []));
+let hideRead = lsGet("asap.hideread", false) === true;
+
+function toggleSave(it, btn){
+  const k = keyOf(it);
+  if(savedKeys.has(k)){ saved = saved.filter(s => keyOf(s) !== k); savedKeys.delete(k); }
+  else { saved.unshift({...snap(it), savedAt: Date.now()}); savedKeys.add(k); }
+  if(!lsSet("asap.saved.v1", saved)){ $("status").className = "err"; $("status").textContent = "Could not write to browser storage: saved items will be lost on reload."; }
+  paintSave(btn, savedKeys.has(k)); updateTabs();
+}
+function toggleRead(it, btn, card){
+  const k = keyOf(it);
+  if(readKeys.has(k)) readKeys.delete(k); else readKeys.add(k);
+  lsSet("asap.read.v1", [...readKeys].slice(-4000));
+  paintRead(btn, card, readKeys.has(k));
+}
+function updateTabs(){ $("scount").textContent = saved.length; }
+
+const ICON = {
+  save: '<svg class="fill" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 3h12a1 1 0 0 1 1 1v17l-7-4-7 4V4a1 1 0 0 1 1-1z"/></svg>',
+  eye: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M2 12s3.6-7 10-7 10 7 10 7-3.6 7-10 7S2 12 2 12z"/><circle cx="12" cy="12" r="3"/></svg>',
+  out: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M7 17 17 7M8 7h9v9"/></svg>'
+};
+function paintSave(btn, on){
+  btn.innerHTML = ICON.save + "<span>" + (on ? "Saved" : "Save") + "</span>";
+  btn.classList.toggle("on", on); btn.dataset.tip = on ? "Remove from saved" : "Save for later"; btn.setAttribute("aria-pressed", on);
+}
+function paintRead(btn, card, on){
+  btn.innerHTML = ICON.eye + "<span>" + (on ? "Read" : "Mark read") + "</span>";
+  btn.classList.toggle("on", on); card.classList.toggle("read", on);
+  btn.dataset.tip = on ? "Mark as unread" : "Mark as read"; btn.setAttribute("aria-pressed", on);
+}
+const el = (tag, cls, text) => { const n = document.createElement(tag); if(cls) n.className = cls; if(text != null) n.textContent = text; return n; };
+
+function buildCard(it, count = true){
+  applyKnownAbs(it);
+  const key = keyOf(it), card = el("article", "card"), tok = renderToken;
+  const urls = failedPreview.has(key) ? [] : previewCandidates(it);
+  if(urls.length){
+    const t = el("div", "thumb"), img = document.createElement("img");
+    let i = 0;
+    img.alt = "Graphical abstract for " + it.title;
+    img.decoding = "async"; img.referrerPolicy = "no-referrer";
+    if(count) imgTry++;
+    img.onload = () => { if(count && tok === renderToken){ imgOk++; updateStatus(); } };
+    img.onerror = () => {
+      if(++i < urls.length){ img.src = urls[i]; return; }
+      failedPreview.add(key); t.remove(); card.classList.add("noimg");
+      if(count && tok === renderToken) updateStatus();
+    };
+    img.src = urls[0]; t.append(img); card.append(t);
+  } else card.classList.add("noimg");
+
+  const body = el("div", "body");
+  const top = el("div", "top");
+  const pill = el("span", "pill", SHORT[it.issn] || it.journal);
+  const c = pubColor(it.doi); if(c) pill.style.background = c;
+  top.append(pill);
+  if(isAcs(it.doi)) top.append(el("span", "tag", "ASAP"));
+  top.append(el("span", "dot", "·"), el("span", "ago", ago(it.date)));
+
+  const h = el("h2"), l = el("a", "", it.title);
+  l.href = it.url; l.target = "_blank"; l.rel = "noopener"; h.append(l);
+  body.append(top, h);
+  if(it.authors.length) body.append(el("p", "authors", authorList(it.authors)));
+  if(it.abs) body.append(el("p", "abs", it.abs));
+  else { const e = absMap[doiKey(it)]; if(e && !e[1]) body.append(el("p", "abs none", "Abstract not available yet from Crossref or OpenAlex.")); }
+
+  const act = el("div", "actions");
+  const full = el("a", "btn full"); full.href = it.url; full.target = "_blank"; full.rel = "noopener";
+  full.innerHTML = "<span>Full text</span>" + ICON.out; act.append(full);
+
+  if(it.abs && it.abs.length > 260){
+    const ab = el("button", "btn", "Show abstract");
+    ab.onclick = () => { const o = card.classList.toggle("open"); ab.textContent = o ? "Hide abstract" : "Show abstract"; };
+    act.append(ab);
+  }
+  const sv = el("button", "btn"); paintSave(sv, savedKeys.has(key)); sv.onclick = () => toggleSave(it, sv);
+  const rd = el("button", "btn"); paintRead(rd, card, readKeys.has(key)); rd.onclick = () => toggleRead(it, rd, card);
+  act.append(sv, rd);
+  if(it.doi){ const d = el("a", "doi", "doi:" + it.doi); d.href = "https://doi.org/" + it.doi; d.target = "_blank"; d.rel = "noopener"; act.append(d); }
+  body.append(act); card.append(body);
+  return card;
+}
+
+// ================= Render =================
+function updateStatus(){
+  const s = $("status"), n = items.length, mode = $("sort").value;
+  s.className = "";
+  if(view === "saved"){
+    s.textContent = n ? `${n} saved article${n === 1 ? "" : "s"}, most recently saved first.` : "Nothing saved yet. Press Save on any article in the Feed.";
+    return;
+  }
+  if(!selected.length){ s.textContent = "No journals selected. Open Journals to choose some."; return; }
+  if(refreshRunning){
+    s.textContent = `Updating journals ${done}/${total} · ${n} articles shown` + (failed.length ? ` · ${failed.length} failed` : "") + "…";
+  } else if(failed.length){
+    s.className = "err";
+    s.textContent = `${failed.length} journal(s) could not be updated: ${failed.join(", ")}. ${n} articles from cache and successful journals.`;
+  } else {
+    s.textContent = n
+      ? `${n} articles from the last ${DAYS_BACK} days, ` +
+        (mode === "relevance" ? "most relevant first." : mode === "professors" ? "by listed professors." : "newest first.")
+      : "No articles found. Choose more journals or try again later.";
+    if(n && imgTry) s.textContent += ` Previews loaded: ${imgOk}/${imgTry}.`;
+  }
+}
+
+function render(){
+  renderToken++; imgOk = 0; imgTry = 0; cardByKey.clear();
+  const start = page * PER_PAGE, slice = items.slice(start, start + PER_PAGE);
+  const frag = document.createDocumentFragment();
+  for(const it of slice){ const c = buildCard(it); cardByKey.set(keyOf(it), c); frag.append(c); }
+  $("feed").replaceChildren(frag);
+  const pages = Math.max(1, Math.ceil(items.length / PER_PAGE));
+  $("pg").textContent = "Page " + (page + 1) + " of " + pages;
+  $("prev").disabled = page === 0; $("next").disabled = page >= pages - 1;
+  $("opts").hidden = view === "saved";
+  updateStatus();
+  enrichAbstracts(slice);
+}
+
+function openDialog(){
+  const frag = document.createDocumentFragment();
+  for(const [n, issn] of JOURNALS){
+    const l = document.createElement("label"), c = document.createElement("input");
+    c.type = "checkbox"; c.value = issn; c.checked = selected.includes(issn);
+    const name = document.createElement("span"); name.className = "journal-name"; name.textContent = n;
+    const impact = document.createElement("span"); impact.className = "impact";
+    const jcr = document.createElement("span");
+    jcr.textContent = `${IMPACT_FACTOR_YEAR}: ${IMPACT_FACTORS[issn] || "not publicly available"}`;
+    const citeScore = document.createElement("span");
+    citeScore.textContent = `${CITESCORE_YEAR}: ${CITESCORES[issn] || "not publicly available"}`;
+    impact.append(jcr, citeScore);
+    if(QUARTILES[issn]){
+      const quartile = document.createElement("span");
+      quartile.textContent = `Quartile: ${QUARTILES[issn]}`;
+      impact.append(quartile);
+    }
+    l.append(c, name, impact); frag.append(l);
+  }
+  $("jlist").replaceChildren(frag);
+  if(EMBED){
+    const d = $("dlg");
+    d.style.position = "fixed"; d.style.margin = "0 auto"; d.style.bottom = "auto";
+    d.style.top = Math.round(VP.top + 12) + "px";
+    $("jlist").style.maxHeight = Math.max(150, Math.round(VP.h - 290)) + "px";
+  }
+  $("dlg").showModal();
+}
+const boxes = () => [...$("jlist").querySelectorAll("input")];
+
+$("refresh").onclick = () => refresh(true);   // explicit click always re-fetches
+$("sort").onchange = () => {
+  try { localStorage.setItem(SORT_KEY, $("sort").value); } catch(e) {}
+  applyView(); page = 0; render();
+};
+$("jbtn").onclick = openDialog;
+$("cancel").onclick = () => $("dlg").close();
+$("all").onclick = () => boxes().forEach(c => c.checked = true);
+$("none").onclick = () => boxes().forEach(c => c.checked = false);
+$("defs").onclick = () => boxes().forEach(c => c.checked = !!JOURNALS.find(j => j[1] === c.value)[2]);
+$("save").onclick = () => { const s = boxes().filter(c => c.checked).map(c => c.value); if(!s.length) return; selected = s; persist(); $("dlg").close(); refresh(); };
+const toTop = () => EMBED ? parent.postMessage({type: "asap-top"}, location.origin) : scrollTo(0, 0);
+$("prev").onclick = () => { page--; render(); toTop(); };
+$("next").onclick = () => { page++; render(); toTop(); };
+
+function setView(v){
+  view = v; page = 0;
+  $("tabFeed").classList.toggle("on", v === "feed"); $("tabFeed").setAttribute("aria-pressed", v === "feed");
+  $("tabSaved").classList.toggle("on", v === "saved"); $("tabSaved").setAttribute("aria-pressed", v === "saved");
+  applyView(); render(); toTop();
+}
+$("tabFeed").onclick = () => setView("feed");
+$("tabSaved").onclick = () => setView("saved");
+$("hideread").checked = hideRead;
+$("hideread").onchange = () => { hideRead = $("hideread").checked; lsSet("asap.hideread", hideRead); applyView(); page = 0; render(); };
+updateTabs();
+
+refresh();
+</script>
+</body>
+</html>
