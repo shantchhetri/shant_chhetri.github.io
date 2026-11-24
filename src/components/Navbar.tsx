@@ -76,11 +76,11 @@ export function Navbar({ page }: { page: Page }) {
                 aria-current={page === item.id ? 'page' : undefined}
                 className={cn(
                   'relative block rounded-full px-4 py-1.5 text-[13.5px] font-medium transition-colors',
-                  page === item.id ? 'text-white' : 'text-muted hover:text-navy',
+                  page === item.id ? 'text-navy' : 'text-muted hover:text-navy',
                 )}
               >
                 {page === item.id && (
-                  <motion.span layoutId="nav-active" className="absolute inset-0 rounded-full bg-wine shadow-md shadow-wine/30" transition={{ type: 'spring', stiffness: 380, damping: 32 }} />
+                  <motion.span layoutId="nav-active" className="absolute inset-0 rounded-full bg-slate-200 dark:bg-slate-700" transition={{ type: 'spring', stiffness: 380, damping: 32 }} />
                 )}
                 <span className="relative">{item.label}</span>
               </a>
